@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CampusFlow 360</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0b0e;
+  --bg2:#111318;
+  --bg3:#181b22;
+  --bg4:#1e2229;
+  --border:#ffffff12;
+  --border2:#ffffff1f;
+  --text:#e8eaf0;
+  --text2:#8b8fa8;
+  --text3:#555870;
+  --green:#22c55e;
+  --green2:#16a34a;
+  --green-dim:#22c55e18;
+  --green-glow:#22c55e30;
+  --amber:#f59e0b;
+  --amber-dim:#f59e0b18;
+  --red:#ef4444;
+  --red-dim:#ef444418;
+  --blue:#3b82f6;
+  --blue-dim:#3b82f618;
+  --purple:#a855f7;
+  --purple-dim:#a855f718;
+  --radius:8px;
+  --radius-lg:12px;
+  --sidebar:240px;
+}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.6;overflow-x:hidden}
+/* LAYOUT */
+.app{display:flex;min-height:100vh}
+.sidebar{width:var(--sidebar);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;transition:transform .3s}
+.sidebar-logo{padding:20px 16px;border-bottom:1px solid var(--border)}
+.logo-mark{display:flex;align-items:center;gap:10px}
+.logo-icon{width:32px;height:32px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-icon svg{width:18px;height:18px;stroke:#000;fill:none;stroke-width:2.5}
+.logo-text{font-size:15px;font-weight:600;color:var(--text)}
+.logo-sub{font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;font-family:'DM Mono',monospace}
+.sidebar-section{padding:16px 10px 8px;font-size:10px;color:var(--text3);letter-spacing:1.2px;text-transform:uppercase;font-family:'DM Mono',monospace}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--radius);cursor:pointer;color:var(--text2);transition:all .15s;margin:1px 6px;font-size:13px;font-weight:400}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--green-dim);color:var(--green);font-weight:500}
+.nav-item svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--red-dim);color:var(--red);font-size:10px;font-family:'DM Mono',monospace;padding:2px 6px;border-radius:20px;font-weight:500}
+.sidebar-footer{margin-top:auto;padding:12px 6px;border-top:1px solid var(--border)}
+.user-card{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius);background:var(--bg3)}
+.avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--green),#059669);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#000;flex-shrink:0}
+.user-name{font-size:13px;font-weight:500;color:var(--text)}
+.user-role{font-size:11px;color:var(--text3)}
+.main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{padding:14px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg2);position:sticky;top:0;z-index:50}
+.page-title{font-size:16px;font-weight:600;color:var(--text)}
+.page-subtitle{font-size:12px;color:var(--text3)}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.notif-btn{width:36px;height:36px;border-radius:var(--radius);background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);position:relative;transition:all .15s}
+.notif-btn:hover{border-color:var(--border2);color:var(--text)}
+.notif-dot{position:absolute;top:7px;right:7px;width:7px;height:7px;background:var(--red);border-radius:50%;border:1.5px solid var(--bg2)}
+.notif-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+.content{padding:24px 28px;flex:1}
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:13px;font-weight:500;color:var(--text)}
+.card-body{padding:20px}
+/* STATS GRID */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;position:relative;overflow:hidden;transition:border-color .2s;cursor:default}
+.stat-card:hover{border-color:var(--border2)}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.stat-card.green::before{background:var(--green)}
+.stat-card.amber::before{background:var(--amber)}
+.stat-card.red::before{background:var(--red)}
+.stat-card.blue::before{background:var(--blue)}
+.stat-card.purple::before{background:var(--purple)}
+.stat-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;font-family:'DM Mono',monospace;margin-bottom:8px}
+.stat-value{font-size:28px;font-weight:600;color:var(--text);font-family:'DM Mono',monospace;line-height:1}
+.stat-sub{font-size:11px;color:var(--text3);margin-top:6px}
+.stat-icon{position:absolute;top:16px;right:16px;width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.stat-card.green .stat-icon{background:var(--green-dim)}
+.stat-card.amber .stat-icon{background:var(--amber-dim)}
+.stat-card.red .stat-icon{background:var(--red-dim)}
+.stat-card.blue .stat-icon{background:var(--blue-dim)}
+.stat-card.purple .stat-icon{background:var(--purple-dim)}
+.stat-icon svg{width:16px;height:16px;stroke-width:2;fill:none}
+.stat-card.green .stat-icon svg{stroke:var(--green)}
+.stat-card.amber .stat-icon svg{stroke:var(--amber)}
+.stat-card.red .stat-icon svg{stroke:var(--red)}
+.stat-card.blue .stat-icon svg{stroke:var(--blue)}
+.stat-card.purple .stat-icon svg{stroke:var(--purple)}
+/* GRID LAYOUTS */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+.col-span-2{grid-column:span 2}
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:500;font-family:'DM Mono',monospace}
+.badge-green{background:var(--green-dim);color:var(--green)}
+.badge-amber{background:var(--amber-dim);color:var(--amber)}
+.badge-red{background:var(--red-dim);color:var(--red)}
+.badge-blue{background:var(--blue-dim);color:var(--blue)}
+.badge-gray{background:#ffffff10;color:var(--text2)}
+.badge-purple{background:var(--purple-dim);color:var(--purple)}
+/* TABLE */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:10px 16px;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;font-family:'DM Mono',monospace;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:11px 16px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#ffffff04}
+.td-id{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3)}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:var(--radius);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;border:none;font-family:'DM Sans',sans-serif}
+.btn-primary{background:var(--green);color:#000}
+.btn-primary:hover{background:#16a34a}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--bg3);color:var(--text);border-color:var(--border2)}
+.btn-sm{padding:5px 11px;font-size:12px}
+.btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+/* FORM */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group.full{grid-column:span 2}
+.form-label{font-size:11px;color:var(--text2);font-weight:500;letter-spacing:.3px}
+.form-input,.form-select,.form-textarea{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:9px 12px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border-color .15s;width:100%}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:#22c55e50}
+.form-textarea{resize:vertical;min-height:80px}
+.form-select option{background:var(--bg3)}
+/* AI PANEL */
+.ai-panel{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:20px}
+.ai-header{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.ai-dot{width:8px;height:8px;background:var(--green);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
+.ai-label{font-size:11px;color:var(--green);font-weight:500;letter-spacing:.5px;text-transform:uppercase;font-family:'DM Mono',monospace}
+.ai-items{display:flex;flex-direction:column;gap:8px}
+.ai-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--bg2);border-radius:var(--radius);border:1px solid var(--border)}
+.ai-item-icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.ai-item-icon.warn{background:var(--amber-dim)}
+.ai-item-icon.info{background:var(--blue-dim)}
+.ai-item-icon.ok{background:var(--green-dim)}
+.ai-item-icon svg{width:12px;height:12px;stroke-width:2.5;fill:none}
+.ai-item-icon.warn svg{stroke:var(--amber)}
+.ai-item-icon.info svg{stroke:var(--blue)}
+.ai-item-icon.ok svg{stroke:var(--green)}
+.ai-item-text{font-size:12px;color:var(--text2);line-height:1.5}
+.ai-item-text strong{color:var(--text);font-weight:500}
+/* PROGRESS BAR */
+.progress-bar{height:4px;background:#ffffff12;border-radius:2px;overflow:hidden;margin-top:4px}
+.progress-fill{height:100%;border-radius:2px;transition:width .5s}
+/* STATUS DOT */
+.status-dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+.dot-green{background:var(--green)}
+.dot-amber{background:var(--amber)}
+.dot-red{background:var(--red)}
+.dot-gray{background:var(--text3)}
+/* TABS */
+.tabs{display:flex;gap:2px;background:var(--bg3);padding:4px;border-radius:var(--radius);margin-bottom:20px;width:fit-content}
+.tab{padding:7px 16px;border-radius:6px;font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s}
+.tab.active{background:var(--bg2);color:var(--text);font-weight:500}
+/* SECTION HEADER */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.section-title{font-size:14px;font-weight:600;color:var(--text)}
+/* EQUIPMENT GRID */
+.equip-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.equip-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;transition:border-color .2s}
+.equip-card:hover{border-color:var(--border2)}
+.equip-icon{width:40px;height:40px;border-radius:10px;background:var(--bg4);display:flex;align-items:center;justify-content:center;margin-bottom:12px}
+.equip-icon svg{width:20px;height:20px;stroke:var(--text2);fill:none;stroke-width:1.5}
+.equip-name{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px}
+.equip-loc{font-size:11px;color:var(--text3);margin-bottom:10px}
+.equip-status{display:flex;align-items:center;justify-content:space-between}
+/* TECHNICIAN QUEUE */
+.queue-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.queue-item:last-child{border-bottom:none}
+.queue-rank{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);width:20px;text-align:center;flex-shrink:0}
+.queue-info{flex:1;min-width:0}
+.queue-title{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.queue-meta{font-size:11px;color:var(--text3)}
+.queue-actions{display:flex;gap:6px;flex-shrink:0}
+/* LOGIN SCREEN */
+.login-screen{min-height:100vh;background:var(--bg);display:flex;align-items:center;justify-content:center;position:fixed;inset:0;z-index:999}
+.login-card{width:420px;background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:40px;position:relative;overflow:hidden}
+.login-card::before{content:'';position:absolute;top:-80px;right:-80px;width:200px;height:200px;background:radial-gradient(circle,var(--green-glow),transparent 70%);pointer-events:none}
+.login-logo{display:flex;align-items:center;gap:12px;margin-bottom:32px}
+.login-logo-icon{width:44px;height:44px;background:var(--green);border-radius:12px;display:flex;align-items:center;justify-content:center}
+.login-logo-icon svg{width:24px;height:24px;stroke:#000;fill:none;stroke-width:2.5}
+.login-title{font-size:22px;font-weight:600;margin-bottom:4px}
+.login-sub{font-size:13px;color:var(--text3);margin-bottom:28px}
+.login-profiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px}
+.profile-btn{padding:12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg3);cursor:pointer;text-align:left;transition:all .2s;font-family:'DM Sans',sans-serif}
+.profile-btn:hover{border-color:var(--green);background:var(--green-dim)}
+.profile-btn.selected{border-color:var(--green);background:var(--green-dim)}
+.profile-btn-name{font-size:13px;font-weight:500;color:var(--text)}
+.profile-btn-role{font-size:11px;color:var(--text3)}
+.login-form{display:flex;flex-direction:column;gap:12px;margin-bottom:20px}
+.login-btn{width:100%;padding:12px;background:var(--green);color:#000;border:none;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+.login-btn:hover{background:#16a34a;transform:translateY(-1px)}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:#00000080;z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;width:560px;max-width:90vw;max-height:85vh;overflow-y:auto;transform:translateY(20px);transition:transform .2s}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:15px;font-weight:600}
+.modal-close{width:28px;height:28px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2)}
+.modal-close svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+.modal-body{padding:24px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+/* EMPTY STATE */
+.empty{text-align:center;padding:48px;color:var(--text3)}
+.empty svg{width:40px;height:40px;stroke:var(--text3);fill:none;stroke-width:1.5;margin:0 auto 12px;display:block}
+/* PAGE SECTIONS */
+.page{display:none}
+.page.active{display:block}
+/* NOTIFICATION TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--bg2);border:1px solid var(--green);border-radius:var(--radius-lg);padding:14px 18px;font-size:13px;color:var(--text);z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;display:flex;align-items:center;gap:10px;max-width:320px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast svg{width:16px;height:16px;stroke:var(--green);fill:none;stroke-width:2;flex-shrink:0}
+/* CHART CONTAINERS */
+.chart-wrap{position:relative;height:200px}
+/* SCROLLBAR */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#ffffff20;border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:#ffffff35}
+/* FILTER ROW */
+.filter-row{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.filter-row .form-input,.filter-row .form-select{width:auto}
+/* SEPARATOR */
+.sep{height:1px;background:var(--border);margin:20px 0}
+/* CHIP */
+.chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:12px;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:all .15s}
+.chip:hover{border-color:var(--border2);color:var(--text)}
+.chip.active{background:var(--green-dim);border-color:var(--green);color:var(--green)}
+/* REPORTS */
+.report-item{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
+.report-item:last-child{border-bottom:none}
+.report-name{font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px}
+.report-desc{font-size:11px;color:var(--text3)}
+.bar-mini{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;width:120px}
+.bar-fill{height:100%;border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <div>
+        <div style="font-size:18px;font-weight:700;letter-spacing:-.3px">CampusFlow 360</div>
+        <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace">Ecossistema Digital Universitário</div>
+      </div>
+    </div>
+    <div class="login-title">Bem-vindo de volta</div>
+    <div class="login-sub">Selecione seu perfil para continuar</div>
+    <div class="login-profiles">
+      <div class="profile-btn selected" onclick="selectProfile(this,'Gestor','gestor')">
+        <div class="profile-btn-name">👔 Ana Souza</div>
+        <div class="profile-btn-role">Gestora Acadêmica</div>
+      </div>
+      <div class="profile-btn" onclick="selectProfile(this,'Técnico','tecnico')">
+        <div class="profile-btn-name">🔧 Carlos Lima</div>
+        <div class="profile-btn-role">Técnico de TI</div>
+      </div>
+      <div class="profile-btn" onclick="selectProfile(this,'Professor','professor')">
+        <div class="profile-btn-name">📚 Prof. Martins</div>
+        <div class="profile-btn-role">Docente</div>
+      </div>
+      <div class="profile-btn" onclick="selectProfile(this,'Aluno','aluno')">
+        <div class="profile-btn-name">🎓 Lucas Ferreira</div>
+        <div class="profile-btn-role">Aluno — ADS</div>
+      </div>
+    </div>
+    <div class="login-form">
+      <input type="password" class="form-input" placeholder="••••••••" value="campus2025" style="letter-spacing:3px">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Entrar na Plataforma →</button>
+    <div style="text-align:center;margin-top:16px;font-size:11px;color:var(--text3)">CampusFlow 360 v2.1.0 · ADS Tópicos Especiais</div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="toastMsg">Chamado criado com sucesso!</span>
+</div>
+
+<!-- MODAL - NOVO CHAMADO -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Abrir Novo Chamado</div>
+      <div class="modal-close" onclick="closeModal()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label class="form-label">Título do Chamado *</label>
+          <input type="text" class="form-input" id="f_titulo" placeholder="Ex: Projetor sem sinal no Lab 03">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Setor *</label>
+          <select class="form-select" id="f_setor">
+            <option value="">Selecione...</option>
+            <option>Laboratório de Informática</option>
+            <option>Biblioteca</option>
+            <option>Bloco A — Salas de Aula</option>
+            <option>Bloco B — Salas de Aula</option>
+            <option>Coordenação</option>
+            <option>RU — Restaurante Universitário</option>
+            <option>Infraestrutura Geral</option>
+            <option>Redes e Conectividade</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Local *</label>
+          <input type="text" class="form-input" id="f_local" placeholder="Ex: Lab 03, Bloco B, Sala 204">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Prioridade</label>
+          <select class="form-select" id="f_prioridade">
+            <option value="baixa">Baixa</option>
+            <option value="media" selected>Média</option>
+            <option value="alta">Alta</option>
+            <option value="critica">Crítica</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Responsável</label>
+          <select class="form-select" id="f_responsavel">
+            <option>Carlos Lima</option>
+            <option>Fernanda Costa</option>
+            <option>Pedro Alves</option>
+            <option>Mariana Santos</option>
+            <option>A definir</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Descrição Detalhada</label>
+          <textarea class="form-textarea" id="f_desc" placeholder="Descreva o problema com o máximo de detalhes possível..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="criarChamado()">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Abrir Chamado
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- APP LAYOUT -->
+<div class="app" id="appLayout" style="display:none">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <div>
+        <div class="logo-text">CampusFlow</div>
+        <div class="logo-sub">360</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-section">Principal</div>
+  <div class="nav-item active" onclick="navTo('dashboard',this)">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+    Dashboard
+  </div>
+  <div class="nav-item" onclick="navTo('chamados',this)">
+    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    Chamados
+    <span class="nav-badge" id="badgeChamados">7</span>
+  </div>
+  <div class="nav-item" onclick="navTo('infra',this)">
+    <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+    Infraestrutura
+  </div>
+
+  <div class="sidebar-section">Operação</div>
+  <div class="nav-item" onclick="navTo('tecnicos',this)">
+    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+    Painel Técnicos
+  </div>
+  <div class="nav-item" onclick="navTo('relatorios',this)">
+    <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    Relatórios
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="user-card">
+      <div class="avatar" id="sidebarAvatar">AS</div>
+      <div>
+        <div class="user-name" id="sidebarName">Ana Souza</div>
+        <div class="user-role" id="sidebarRole">Gestora Acadêmica</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title" id="topbarTitle">Dashboard</div>
+      <div class="page-subtitle" id="topbarSub">Visão gerencial em tempo real</div>
+    </div>
+    <div class="topbar-right">
+      <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace" id="topbarDate"></div>
+      <button class="btn btn-primary" onclick="openModal()">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Novo Chamado
+      </button>
+      <div class="notif-btn" title="Notificações">
+        <div class="notif-dot"></div>
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ===== DASHBOARD ===== -->
+    <div class="page active" id="page-dashboard">
+      <!-- AI Insights -->
+      <div class="ai-panel">
+        <div class="ai-header">
+          <div class="ai-dot"></div>
+          <div class="ai-label">IA CampusFlow · Insights Automáticos</div>
+        </div>
+        <div class="ai-items">
+          <div class="ai-item">
+            <div class="ai-item-icon warn"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+            <div class="ai-item-text"><strong>Alta demanda prevista:</strong> semana de provas se aproxima. Histórico indica aumento de 40% em chamados do Laboratório de Informática nos próximos 7 dias.</div>
+          </div>
+          <div class="ai-item">
+            <div class="ai-item-icon info"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+            <div class="ai-item-text"><strong>Padrão recorrente detectado:</strong> Lab 03 apresentou 6 falhas nos últimos 30 dias. Recomendação: manutenção preventiva urgente nos computadores da fileira B.</div>
+          </div>
+          <div class="ai-item">
+            <div class="ai-item-icon ok"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <div class="ai-item-text"><strong>Oportunidade identificada:</strong> Projetores do Bloco B com 18 meses sem revisão. Manutenção preventiva agendada pode reduzir chamados críticos em ~60%.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card amber">
+          <div class="stat-label">Abertos</div>
+          <div class="stat-value" id="statAbertos">—</div>
+          <div class="stat-sub">aguardando atendimento</div>
+          <div class="stat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-label">Em Andamento</div>
+          <div class="stat-value" id="statAndamento">—</div>
+          <div class="stat-sub">em atendimento agora</div>
+          <div class="stat-icon"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg></div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">Resolvidos</div>
+          <div class="stat-value" id="statResolvidos">—</div>
+          <div class="stat-sub">últimos 30 dias</div>
+          <div class="stat-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">Críticos</div>
+          <div class="stat-value" id="statCriticos">—</div>
+          <div class="stat-sub">prioridade alta/crítica</div>
+          <div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg></div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Chamados por Setor</div>
+            <span class="badge badge-gray">30 dias</span>
+          </div>
+          <div class="card-body">
+            <div class="chart-wrap"><canvas id="chartSetor" role="img" aria-label="Chamados por setor"></canvas></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Evolução Mensal</div>
+            <span class="badge badge-green">▲ 12%</span>
+          </div>
+          <div class="card-body">
+            <div class="chart-wrap"><canvas id="chartEvolucao" role="img" aria-label="Evolução de chamados"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Row -->
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Chamados Recentes</div><span class="badge badge-amber" id="badgeRecentes">—</span></div>
+          <div class="card-body" style="padding:0">
+            <div id="recentesList"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">SLA por Prioridade</div><span class="badge badge-gray">meta vs real</span></div>
+          <div class="card-body">
+            <div id="slaList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== CHAMADOS ===== -->
+    <div class="page" id="page-chamados">
+      <div class="filter-row">
+        <input type="text" class="form-input" id="searchInput" placeholder="🔍  Buscar chamado..." style="width:240px" oninput="renderChamados()">
+        <select class="form-select" id="filterStatus" onchange="renderChamados()" style="width:160px">
+          <option value="">Todos os status</option>
+          <option value="aberto">Aberto</option>
+          <option value="andamento">Em Andamento</option>
+          <option value="resolvido">Resolvido</option>
+        </select>
+        <select class="form-select" id="filterPrioridade" onchange="renderChamados()" style="width:150px">
+          <option value="">Todas as prioridades</option>
+          <option value="critica">Crítica</option>
+          <option value="alta">Alta</option>
+          <option value="media">Média</option>
+          <option value="baixa">Baixa</option>
+        </select>
+        <div style="margin-left:auto">
+          <button class="btn btn-primary" onclick="openModal()">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Novo Chamado
+          </button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Título</th>
+                <th>Setor</th>
+                <th>Prioridade</th>
+                <th>Status</th>
+                <th>Responsável</th>
+                <th>Criado em</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="chamadosBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== INFRAESTRUTURA ===== -->
+    <div class="page" id="page-infra">
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat-card green">
+          <div class="stat-label">Operacional</div>
+          <div class="stat-value">47</div>
+          <div class="stat-sub">equipamentos ok</div>
+          <div class="stat-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+        <div class="stat-card amber">
+          <div class="stat-label">Em Manutenção</div>
+          <div class="stat-value">8</div>
+          <div class="stat-sub">em reparo</div>
+          <div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">Com Defeito</div>
+          <div class="stat-value">5</div>
+          <div class="stat-sub">aguardando reparo</div>
+          <div class="stat-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-label">Total Cadastrado</div>
+          <div class="stat-value">60</div>
+          <div class="stat-sub">itens no inventário</div>
+          <div class="stat-icon"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+        </div>
+      </div>
+      <div class="equip-grid" id="equipGrid"></div>
+    </div>
+
+    <!-- ===== TÉCNICOS ===== -->
+    <div class="page" id="page-tecnicos">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Fila de Atendimento</div><span class="badge badge-amber">Prioridade</span></div>
+          <div class="card-body" style="padding:0 20px" id="filaList"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Equipe Técnica</div></div>
+          <div class="card-body" id="equipeTecnica"></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <div class="card-header"><div class="card-title">Métricas da Equipe — Este Mês</div></div>
+        <div class="card-body">
+          <div class="chart-wrap"><canvas id="chartTecnicos" role="img" aria-label="Chamados por técnico"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== RELATÓRIOS ===== -->
+    <div class="page" id="page-relatorios">
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat-card green">
+          <div class="stat-label">TMA Geral</div>
+          <div class="stat-value">4.2h</div>
+          <div class="stat-sub">tempo médio atendimento</div>
+          <div class="stat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-label">Taxa Resolução</div>
+          <div class="stat-value">87%</div>
+          <div class="stat-sub">chamados resolvidos</div>
+          <div class="stat-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+        <div class="stat-card amber">
+          <div class="stat-label">SLA Crítico</div>
+          <div class="stat-value">2.1h</div>
+          <div class="stat-sub">meta: 2h</div>
+          <div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-label">NPS Satisfação</div>
+          <div class="stat-value">78</div>
+          <div class="stat-sub">índice de satisfação</div>
+          <div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Chamados por Setor (30 dias)</div></div>
+          <div class="card-body" style="padding:0 20px" id="relSetorList"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Tempo Médio por Prioridade</div></div>
+          <div class="card-body">
+            <div class="chart-wrap"><canvas id="chartTMA" role="img" aria-label="TMA por prioridade"></canvas></div>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <div class="card-header"><div class="card-title">Previsão de Demanda — Próximos 6 Meses</div><span class="badge badge-purple">IA Preditiva</span></div>
+        <div class="card-body">
+          <div class="chart-wrap" style="height:220px"><canvas id="chartPrevisao" role="img" aria-label="Previsão de demanda"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+// ============================================================
+// DATA LAYER — Simula banco de dados / API
+// ============================================================
+const DB = {
+  users: {
+    gestor: {name:'Ana Souza', role:'Gestora Acadêmica', initials:'AS'},
+    tecnico: {name:'Carlos Lima', role:'Técnico de TI', initials:'CL'},
+    professor: {name:'Prof. Martins', role:'Docente', initials:'PM'},
+    aluno: {name:'Lucas Ferreira', role:'Aluno — ADS', initials:'LF'},
+  },
+  chamados: [
+    {id:'CF-001',titulo:'Projetor sem sinal — Lab 03',setor:'Laboratório de Informática',local:'Lab 03',prioridade:'critica',status:'aberto',responsavel:'Carlos Lima',criado:'24/05/2025',desc:'Projetor parou de funcionar durante aula, sem sinal HDMI.'},
+    {id:'CF-002',titulo:'Computadores travando durante prova',setor:'Laboratório de Informática',local:'Lab 01',prioridade:'alta',status:'andamento',responsavel:'Pedro Alves',criado:'23/05/2025',desc:'8 máquinas travando repetidamente. Possível problema de RAM.'},
+    {id:'CF-003',titulo:'Wi-Fi instável no Bloco B',setor:'Redes e Conectividade',local:'Bloco B — Salas 101-110',prioridade:'alta',status:'andamento',responsavel:'Fernanda Costa',criado:'22/05/2025',desc:'Queda de conexão frequente. Sinal muito fraco nas salas do 1º andar.'},
+    {id:'CF-004',titulo:'Ar-condicionado com ruído excessivo',setor:'Bloco A — Salas de Aula',local:'Sala 204',prioridade:'media',status:'aberto',responsavel:'Mariana Santos',criado:'22/05/2025',desc:'Equipamento fazendo barulho alto, atrapalhando as aulas.'},
+    {id:'CF-005',titulo:'Impressora da Coordenação sem tinta',setor:'Coordenação',local:'Coordenação ADS',prioridade:'baixa',status:'resolvido',responsavel:'Carlos Lima',criado:'20/05/2025',desc:'Cartucho de tinta preta vazio.'},
+    {id:'CF-006',titulo:'Mouse e teclado sem funcionar — Lab 02',setor:'Laboratório de Informática',local:'Lab 02, estação 07',prioridade:'media',status:'resolvido',responsavel:'Pedro Alves',criado:'19/05/2025',desc:'Periféricos da estação 07 não respondem.'},
+    {id:'CF-007',titulo:'Datashow queimado — Sala 106',setor:'Bloco A — Salas de Aula',local:'Sala 106',prioridade:'alta',status:'aberto',responsavel:'A definir',criado:'24/05/2025',desc:'Equipamento não liga, cheiro de queimado.'},
+    {id:'CF-008',titulo:'Piso escorregadio — corredor 3º andar',setor:'Infraestrutura Geral',local:'3º Andar Bloco Principal',prioridade:'critica',status:'aberto',responsavel:'Mariana Santos',criado:'25/05/2025',desc:'Risco de acidente. Piso molhado sem sinalização.'},
+    {id:'CF-009',titulo:'Acesso à plataforma Moodle fora do ar',setor:'Redes e Conectividade',local:'Toda a instituição',prioridade:'critica',status:'andamento',responsavel:'Fernanda Costa',criado:'25/05/2025',desc:'Alunos não conseguem acessar o AVA para submissão de atividades.'},
+    {id:'CF-010',titulo:'Bebedouro com vazamento — Biblioteca',setor:'Biblioteca',local:'Biblioteca — 2º Andar',prioridade:'media',status:'aberto',responsavel:'A definir',criado:'23/05/2025',desc:'Bebedouro vaza constantemente, molhando o piso.'},
+    {id:'CF-011',titulo:'Câmera de segurança offline — Entrada',setor:'Infraestrutura Geral',local:'Portaria Principal',prioridade:'alta',status:'aberto',responsavel:'Carlos Lima',criado:'21/05/2025',desc:'Câmera do ponto cego desativada há 3 dias.'},
+    {id:'CF-012',titulo:'Lâmpadas queimadas — Sala 302',setor:'Bloco B — Salas de Aula',local:'Sala 302',prioridade:'baixa',status:'resolvido',responsavel:'Mariana Santos',criado:'18/05/2025',desc:'3 lâmpadas LED do teto queimadas.'},
+  ],
+  equipamentos: [
+    {nome:'Laboratório 01 — Computadores',local:'Bloco A, T. 1',tipo:'computador',total:30,ok:28,defeito:2,status:'operacional'},
+    {nome:'Laboratório 02 — Computadores',local:'Bloco A, T. 2',tipo:'computador',total:30,ok:25,defeito:5,status:'parcial'},
+    {nome:'Laboratório 03 — Computadores',local:'Bloco B, T. 1',tipo:'computador',total:30,ok:30,defeito:0,status:'operacional'},
+    {nome:'Projetores — Bloco A',local:'Salas 101-210',tipo:'projetor',total:12,ok:10,defeito:2,status:'parcial'},
+    {nome:'Projetores — Bloco B',local:'Salas 301-410',tipo:'projetor',total:8,ok:7,defeito:1,status:'parcial'},
+    {nome:'Roteadores Wi-Fi',local:'Toda inst.',tipo:'rede',total:18,ok:16,defeito:2,status:'parcial'},
+    {nome:'Servidores Locais',local:'Data Center',tipo:'servidor',total:3,ok:3,defeito:0,status:'operacional'},
+    {nome:'Impressoras — Coord.',local:'Bloco Admin.',tipo:'impressora',total:4,ok:3,defeito:1,status:'parcial'},
+    {nome:'No-breaks / UPS',local:'Labs e Servidores',tipo:'eletrico',total:8,ok:8,defeito:0,status:'operacional'},
+  ],
+  tecnicos: [
+    {nome:'Carlos Lima',chamados:14,resolvidos:11,emAndamento:3,taxa:79},
+    {nome:'Fernanda Costa',chamados:12,resolvidos:10,emAndamento:2,taxa:83},
+    {nome:'Pedro Alves',chamados:9,resolvidos:8,emAndamento:1,taxa:89},
+    {nome:'Mariana Santos',chamados:7,resolvidos:6,emAndamento:1,taxa:86},
+  ]
+};
+
+// Estado da sessão
+let currentUser = 'gestor';
+let chamados = [...DB.chamados];
+let selectedProfile = 'gestor';
+
+// ============================================================
+// LOGIN
+// ============================================================
+function selectProfile(el, name, profile) {
+  document.querySelectorAll('.profile-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedProfile = profile;
+}
+
+function doLogin() {
+  currentUser = selectedProfile;
+  const u = DB.users[currentUser];
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('appLayout').style.display='flex';
+  document.getElementById('sidebarName').textContent = u.name;
+  document.getElementById('sidebarRole').textContent = u.role;
+  document.getElementById('sidebarAvatar').textContent = u.initials;
+  initApp();
+}
+
+// ============================================================
+// NAV
+// ============================================================
+const pages = {
+  dashboard:  {title:'Dashboard', sub:'Visão gerencial em tempo real'},
+  chamados:   {title:'Chamados', sub:'Gestão de tickets e solicitações'},
+  infra:      {title:'Infraestrutura', sub:'Inventário e status dos equipamentos'},
+  tecnicos:   {title:'Painel dos Técnicos', sub:'Fila de atendimento e equipe'},
+  relatorios: {title:'Relatórios & Analytics', sub:'Indicadores e previsões'},
+};
+
+function navTo(page, el) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  el.classList.add('active');
+  document.getElementById('topbarTitle').textContent = pages[page].title;
+  document.getElementById('topbarSub').textContent = pages[page].sub;
+}
+
+// ============================================================
+// MODAL
+// ============================================================
+function openModal() {
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function criarChamado() {
+  const titulo = document.getElementById('f_titulo').value.trim();
+  const setor = document.getElementById('f_setor').value;
+  const local = document.getElementById('f_local').value.trim();
+  if(!titulo || !setor || !local) {alert('Preencha os campos obrigatórios!'); return;}
+  const now = new Date();
+  const id = 'CF-0'+String(chamados.length+1).padStart(2,'0');
+  const novo = {
+    id, titulo,
+    setor,
+    local: local || 'A definir',
+    prioridade: document.getElementById('f_prioridade').value,
+    status: 'aberto',
+    responsavel: document.getElementById('f_responsavel').value,
+    criado: now.toLocaleDateString('pt-BR'),
+    desc: document.getElementById('f_desc').value,
+  };
+  chamados.unshift(novo);
+  closeModal();
+  document.getElementById('f_titulo').value='';
+  document.getElementById('f_setor').value='';
+  document.getElementById('f_local').value='';
+  document.getElementById('f_desc').value='';
+  updateStats();
+  renderChamados();
+  renderRecentes();
+  showToast('Chamado '+id+' aberto com sucesso!');
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3500);
+}
+
+// ============================================================
+// STATS
+// ============================================================
+function updateStats() {
+  const abertos = chamados.filter(c=>c.status==='aberto').length;
+  const andamento = chamados.filter(c=>c.status==='andamento').length;
+  const resolvidos = chamados.filter(c=>c.status==='resolvido').length;
+  const criticos = chamados.filter(c=>c.prioridade==='critica'||c.prioridade==='alta').length;
+  document.getElementById('statAbertos').textContent = abertos;
+  document.getElementById('statAndamento').textContent = andamento;
+  document.getElementById('statResolvidos').textContent = resolvidos;
+  document.getElementById('statCriticos').textContent = criticos;
+  document.getElementById('badgeChamados').textContent = abertos+andamento;
+  document.getElementById('badgeRecentes').textContent = chamados.length+' total';
+}
+
+// ============================================================
+// CHAMADOS TABLE
+// ============================================================
+const prioLabel = {critica:'Crítica',alta:'Alta',media:'Média',baixa:'Baixa'};
+const prioClass = {critica:'badge-red',alta:'badge-amber',media:'badge-blue',baixa:'badge-gray'};
+const statusLabel = {aberto:'Aberto',andamento:'Em Atendimento',resolvido:'Resolvido'};
+const statusClass = {aberto:'badge-amber',andamento:'badge-blue',resolvido:'badge-green'};
+
+function renderChamados() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const fStatus = document.getElementById('filterStatus').value;
+  const fPrio = document.getElementById('filterPrioridade').value;
+  const filtered = chamados.filter(c=>{
+    if(fStatus && c.status!==fStatus) return false;
+    if(fPrio && c.prioridade!==fPrio) return false;
+    if(search && !c.titulo.toLowerCase().includes(search) && !c.setor.toLowerCase().includes(search)) return false;
+    return true;
+  });
+  const tbody = document.getElementById('chamadosBody');
+  tbody.innerHTML = filtered.map(c=>`
+    <tr>
+      <td class="td-id">${c.id}</td>
+      <td><div style="font-weight:500;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.titulo}</div><div style="font-size:11px;color:var(--text3)">${c.local}</div></td>
+      <td style="font-size:12px;color:var(--text2)">${c.setor.split('—')[0].trim()}</td>
+      <td><span class="badge ${prioClass[c.prioridade]}">${prioLabel[c.prioridade]}</span></td>
+      <td><span class="badge ${statusClass[c.status]}">${statusLabel[c.status]}</span></td>
+      <td style="font-size:12px;color:var(--text2)">${c.responsavel}</td>
+      <td style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace">${c.criado}</td>
+      <td>
+        ${c.status!=='resolvido'?`<button class="btn btn-ghost btn-sm" onclick="avancarStatus('${c.id}')">Avançar</button>`:'<span style="color:var(--green);font-size:12px">✓ Concluído</span>'}
+      </td>
+    </tr>
+  `).join('');
+}
+
+function avancarStatus(id) {
+  const c = chamados.find(x=>x.id===id);
+  if(!c) return;
+  if(c.status==='aberto') c.status='andamento';
+  else if(c.status==='andamento') c.status='resolvido';
+  updateStats();
+  renderChamados();
+  renderRecentes();
+  showToast('Status do '+id+' atualizado!');
+}
+
+// ============================================================
+// RECENTES (DASHBOARD)
+// ============================================================
+function renderRecentes() {
+  const list = document.getElementById('recentesList');
+  const top5 = chamados.filter(c=>c.status!=='resolvido').slice(0,5);
+  list.innerHTML = top5.map(c=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:11px 20px;border-bottom:1px solid var(--border)">
+      <span class="badge ${prioClass[c.prioridade]}" style="width:60px;justify-content:center">${prioLabel[c.prioridade]}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.titulo}</div>
+        <div style="font-size:11px;color:var(--text3)">${c.setor.split('—')[0].trim()} · ${c.criado}</div>
+      </div>
+      <span class="badge ${statusClass[c.status]}">${statusLabel[c.status]}</span>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// SLA
+// ============================================================
+function renderSLA() {
+  const data = [
+    {prio:'Crítica',meta:'2h',real:'2.1h',pct:95,color:'var(--red)'},
+    {prio:'Alta',meta:'4h',real:'3.8h',pct:105,color:'var(--amber)'},
+    {prio:'Média',meta:'8h',real:'6.5h',pct:123,color:'var(--blue)'},
+    {prio:'Baixa',meta:'24h',real:'18h',pct:133,color:'var(--green)'},
+  ];
+  document.getElementById('slaList').innerHTML = data.map(d=>`
+    <div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+        <span style="font-size:12px;font-weight:500">${d.prio}</span>
+        <span style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace">Meta ${d.meta} · Real ${d.real}</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(d.pct,100)}%;background:${d.color}"></div></div>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// INFRAESTRUTURA
+// ============================================================
+const equipIcons = {
+  computador:`<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>`,
+  projetor:`<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="1.5"><rect x="2" y="7" width="20" height="10" rx="2"/><circle cx="12" cy="12" r="2"/><line x1="12" y1="7" x2="12" y2="3"/></svg>`,
+  rede:`<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M5 12.55a11 11 0 0114.08 0"/><path d="M1.42 9a16 16 0 0121.16 0"/><path d="M8.53 16.11a6 6 0 016.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>`,
+  servidor:`<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="1.5"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>`,
+  impressora:`<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="1.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>`,
+  eletrico:`<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+};
+
+function renderEquipamentos() {
+  const g = document.getElementById('equipGrid');
+  g.innerHTML = DB.equipamentos.map(e=>{
+    const pct = Math.round((e.ok/e.total)*100);
+    const sc = e.status==='operacional'?'green':e.defeito>3?'red':'amber';
+    const bcolor = {green:'var(--green)',amber:'var(--amber)',red:'var(--red)'}[sc];
+    return `
+    <div class="equip-card">
+      <div class="equip-icon">${equipIcons[e.tipo]||equipIcons.computador}</div>
+      <div class="equip-name">${e.nome}</div>
+      <div class="equip-loc">${e.local}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:11px;color:var(--text3)">${e.ok}/${e.total} operacionais</span>
+        <span class="badge badge-${sc==='green'?'green':sc==='red'?'red':'amber'}">${e.status==='operacional'?'OK':e.defeito+' com defeito'}</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${bcolor}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// TÉCNICOS
+// ============================================================
+function renderTecnicos() {
+  const fila = chamados.filter(c=>c.status!=='resolvido').sort((a,b)=>{
+    const order={critica:0,alta:1,media:2,baixa:3};
+    return order[a.prioridade]-order[b.prioridade];
+  });
+  document.getElementById('filaList').innerHTML = fila.slice(0,8).map((c,i)=>`
+    <div class="queue-item">
+      <div class="queue-rank">${i+1}</div>
+      <div class="queue-info">
+        <div class="queue-title">${c.titulo}</div>
+        <div class="queue-meta">${c.setor.split('—')[0].trim()} · ${c.local}</div>
+      </div>
+      <span class="badge ${prioClass[c.prioridade]}">${prioLabel[c.prioridade]}</span>
+    </div>
+  `).join('');
+
+  document.getElementById('equipeTecnica').innerHTML = DB.tecnicos.map(t=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div class="avatar" style="flex-shrink:0;font-size:11px">${t.nome.split(' ').map(n=>n[0]).join('').slice(0,2)}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:500;margin-bottom:2px">${t.nome}</div>
+        <div style="font-size:11px;color:var(--text3)">${t.chamados} chamados · ${t.resolvidos} resolvidos</div>
+        <div class="progress-bar" style="margin-top:5px"><div class="progress-fill" style="width:${t.taxa}%;background:var(--green)"></div></div>
+      </div>
+      <span class="badge badge-green">${t.taxa}%</span>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// RELATÓRIOS
+// ============================================================
+function renderRelatorios() {
+  const setores = {};
+  chamados.forEach(c=>{
+    const s = c.setor.split('—')[0].trim();
+    if(!setores[s]) setores[s]={total:0,resolvidos:0};
+    setores[s].total++;
+    if(c.status==='resolvido') setores[s].resolvidos++;
+  });
+  const sorted = Object.entries(setores).sort((a,b)=>b[1].total-a[1].total);
+  const max = sorted[0][1].total;
+  document.getElementById('relSetorList').innerHTML = sorted.map(([nome,d])=>`
+    <div class="report-item">
+      <div>
+        <div class="report-name">${nome}</div>
+        <div class="report-desc">${d.total} chamados · ${d.resolvidos} resolvidos</div>
+      </div>
+      <div>
+        <div class="bar-mini"><div class="bar-fill" style="width:${(d.total/max*100).toFixed(0)}%;background:var(--blue)"></div></div>
+        <div style="font-size:10px;color:var(--text3);text-align:right;margin-top:2px;font-family:'DM Mono',monospace">${d.total}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// CHARTS
+// ============================================================
+let chartsInit = false;
+function initCharts() {
+  if(chartsInit) return;
+  chartsInit = true;
+
+  const txt2 = '#8b8fa8';
+  const border = '#ffffff12';
+  const defaults = {
+    responsive:true,
+    maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{grid:{color:border},ticks:{color:txt2,font:{size:11}}},
+      y:{grid:{color:border},ticks:{color:txt2,font:{size:11}}}
+    }
+  };
+
+  // Chart Setor (bar)
+  const setores = {};
+  chamados.forEach(c=>{
+    const s = c.setor.split('—')[0].trim().split(' ').slice(0,2).join(' ');
+    setores[s]=(setores[s]||0)+1;
+  });
+  const sl=Object.keys(setores),sd=Object.values(setores);
+  new Chart(document.getElementById('chartSetor'),{
+    type:'bar',
+    data:{labels:sl,datasets:[{data:sd,backgroundColor:'#3b82f630',borderColor:'#3b82f6',borderWidth:1.5,borderRadius:4}]},
+    options:{...defaults,scales:{...defaults.scales,x:{...defaults.scales.x,ticks:{...defaults.scales.x.ticks,maxRotation:30}}}}
+  });
+
+  // Chart Evolução (line)
+  new Chart(document.getElementById('chartEvolucao'),{
+    type:'line',
+    data:{
+      labels:['Jan','Fev','Mar','Abr','Mai','Jun'],
+      datasets:[
+        {label:'Abertos',data:[18,22,19,25,28,24],borderColor:'#22c55e',backgroundColor:'#22c55e15',tension:.4,fill:true,pointRadius:3,pointBackgroundColor:'#22c55e'},
+        {label:'Resolvidos',data:[15,20,18,22,25,21],borderColor:'#3b82f6',backgroundColor:'transparent',tension:.4,borderDash:[4,3],pointRadius:3,pointBackgroundColor:'#3b82f6'},
+      ]
+    },
+    options:{...defaults,plugins:{legend:{display:false}}}
+  });
+
+  // Chart TMA
+  new Chart(document.getElementById('chartTMA'),{
+    type:'bar',
+    data:{
+      labels:['Crítica','Alta','Média','Baixa'],
+      datasets:[
+        {label:'Meta (h)',data:[2,4,8,24],backgroundColor:'#ffffff20',borderRadius:4},
+        {label:'Real (h)',data:[2.1,3.8,6.5,18],backgroundColor:['#ef444480','#f59e0b80','#3b82f680','#22c55e80'],borderRadius:4},
+      ]
+    },
+    options:{...defaults,plugins:{legend:{display:false}}}
+  });
+
+  // Chart Previsão
+  new Chart(document.getElementById('chartPrevisao'),{
+    type:'line',
+    data:{
+      labels:['Jun','Jul','Ago','Set','Out','Nov'],
+      datasets:[
+        {label:'Histórico',data:[28,null,null,null,null,null],borderColor:'#22c55e',tension:.4,pointRadius:4,pointBackgroundColor:'#22c55e'},
+        {label:'Previsão',data:[28,32,35,41,38,30],borderColor:'#a855f7',backgroundColor:'#a855f715',tension:.4,borderDash:[5,4],fill:true,pointRadius:4,pointBackgroundColor:'#a855f7'},
+      ]
+    },
+    options:{...defaults,plugins:{legend:{display:false}}}
+  });
+
+  // Chart Técnicos
+  new Chart(document.getElementById('chartTecnicos'),{
+    type:'bar',
+    data:{
+      labels:DB.tecnicos.map(t=>t.nome.split(' ')[0]),
+      datasets:[
+        {label:'Total',data:DB.tecnicos.map(t=>t.chamados),backgroundColor:'#3b82f630',borderColor:'#3b82f6',borderWidth:1.5,borderRadius:4},
+        {label:'Resolvidos',data:DB.tecnicos.map(t=>t.resolvidos),backgroundColor:'#22c55e30',borderColor:'#22c55e',borderWidth:1.5,borderRadius:4},
+      ]
+    },
+    options:{...defaults}
+  });
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function initApp() {
+  updateStats();
+  renderChamados();
+  renderRecentes();
+  renderSLA();
+  renderEquipamentos();
+  renderTecnicos();
+  renderRelatorios();
+  setTimeout(initCharts, 100);
+  // Topbar date
+  const now = new Date();
+  document.getElementById('topbarDate').textContent = now.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}).toUpperCase();
+}
+
+// ESC fecha modal
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+document.getElementById('modalOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('modalOverlay'))closeModal()});
+</script>
+</body>
+</html>
